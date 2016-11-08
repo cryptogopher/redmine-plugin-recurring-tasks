@@ -36,7 +36,7 @@ class RecurringTask < ActiveRecord::Base
   # pulled out validates_presence_of separately
   # for older Rails compatibility
   validates_presence_of :interval_unit
-  validates_presence_of :interval_modifier, if: "interval_unit == INTERVAL_MONTH"
+  validates_presence_of :interval_modifier, if: "interval_unit == 'INTERVAL_MONTH'"
   validates_presence_of :interval_number
   
   validates_inclusion_of :interval_unit,
@@ -45,7 +45,7 @@ class RecurringTask < ActiveRecord::Base
   validates_inclusion_of :interval_modifier,
     :in => RecurringTask::MONTH_MODIFIERS_LOCALIZED.keys,
     :message => "#{l(:error_invalid_modifier)} '%{value}' (Validation)",
-    if: "interval_unit == INTERVAL_MONTH"
+    if: "interval_unit == 'INTERVAL_MONTH'"
   validates_numericality_of :interval_number, :only_integer => true, :greater_than => 0
   # cannot validate presence of issue if want to use other features; requiring presence of fixed_schedule requires it to be true
 
@@ -167,7 +167,7 @@ class RecurringTask < ActiveRecord::Base
     if issue.nil?
       puts "Recurring a deleted issue is not supported."
       return false
-    end    
+    end
     
     return true unless need_to_recur?
     
@@ -176,9 +176,10 @@ class RecurringTask < ActiveRecord::Base
     while need_to_recur?      
       new_issue = issue.copy
       new_issue.due_date = next_scheduled_recurrence
-      new_issue.start_date = new_issue.due_date
+      #new_issue.start_date = new_issue.due_date
       new_issue.done_ratio = 0
-      new_issue.status = IssueStatus.default # issue status is NOT automatically new, default is whatever the default status for new issues is
+      # issue status is NOT automatically new, default is whatever the default status for new issues is
+      new_issue.status = issue.tracker.default_status
       new_issue.save!
       puts "Recurring #{issue.id}: #{issue.subj_date}, created #{new_issue.id}: #{new_issue.subj_date}"
     
