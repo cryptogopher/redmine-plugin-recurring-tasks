@@ -23,7 +23,7 @@ class RecurringTasksController < ApplicationController
 
   # creates a new recurring task
   def create
-    @recurring_task = RecurringTask.new(params[:recurring_task])
+    @recurring_task = RecurringTask.new(recurring_task_params)
     if @recurring_task.save
       flash[:notice] = l(:recurring_task_created)
       redirect_to :controller => :issues, :action => :show, :id => @recurring_task.issue.id
@@ -49,7 +49,7 @@ class RecurringTasksController < ApplicationController
   def update
     logger.info "Updating recurring task #{params[:id]}"
   
-    if @recurring_task.update_attributes(params[:recurring_task])
+    if @recurring_task.update_attributes(recurring_task_params)
       flash[:notice] = l(:recurring_task_saved)
       redirect_to :controller => :issues, :action => :show, :id => @recurring_task.issue.id
     else
@@ -90,6 +90,10 @@ private
   def set_interval_units
     @interval_units = 
       RecurringTask::INTERVAL_UNITS_LOCALIZED.collect{|k,v| [v, k]}
+  end
+
+  def recurring_task_params
+    params.require(:recurring_task).permit(:current_issue_id, :interval_number, :interval_unit, :interval_modifier, :fixed_schedule)
   end
 
 end

@@ -36,7 +36,7 @@ class RecurringTask < ActiveRecord::Base
   # pulled out validates_presence_of separately
   # for older Rails compatibility
   validates_presence_of :interval_unit
-  validates_presence_of :interval_modifier, if: "interval_unit == INTERVAL_MONTH"
+  validates_presence_of :interval_modifier, if: "interval_unit == RecurringTask::INTERVAL_MONTH"
   validates_presence_of :interval_number
   
   validates_inclusion_of :interval_unit,
@@ -45,7 +45,7 @@ class RecurringTask < ActiveRecord::Base
   validates_inclusion_of :interval_modifier,
     :in => RecurringTask::MONTH_MODIFIERS_LOCALIZED.keys,
     :message => "#{l(:error_invalid_modifier)} '%{value}' (Validation)",
-    if: "interval_unit == INTERVAL_MONTH"
+    if: "interval_unit == RecurringTask::INTERVAL_MONTH"
   validates_numericality_of :interval_number, :only_integer => true, :greater_than => 0
   # cannot validate presence of issue if want to use other features; requiring presence of fixed_schedule requires it to be true
 
