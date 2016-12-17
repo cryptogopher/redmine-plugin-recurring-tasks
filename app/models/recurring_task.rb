@@ -175,8 +175,10 @@ class RecurringTask < ActiveRecord::Base
     
     while need_to_recur?      
       new_issue = issue.copy
+      new_issue.closed_on = nil
       new_issue.due_date = next_scheduled_recurrence
-      #new_issue.start_date = new_issue.due_date
+      # relative schedule issues neet to be closed to recur
+      new_issue.start_date = fixed_schedule ? issue.due_date : issue.closed_on
       new_issue.done_ratio = 0
       # issue status is NOT automatically new, default is whatever the default status for new issues is
       new_issue.status = issue.tracker.default_status
@@ -214,19 +216,35 @@ class RecurringTask < ActiveRecord::Base
   end # end add_recurrences
   
 private
-  # the date from which to recur
-  # for a fixed schedule, this is the due date
-  # for a relative schedule, this is the date closed
   def previous_date_for_recurrence
     if issue.nil? 
       logger.error "Issue is nil for recurrence #{id}."
       Date.today
-    elsif fixed_schedule and !issue.due_date.nil? 
-      issue.due_date 
-    elsif issue.closed_on.nil? 
-      issue.updated_on
-    else 
-      issue.closed_on 
+    elsif !fixed_schedule
+      if !issue.closed_on.nil?
+        # relative schedule, issue closed -> close date
+        # (relative task reccurs only after closing)
+        issue.closed_on
+      elsif !issue.due_date.nil?
+        # relative schedule, issue open, due date set -> latter of due date/today
+        # (for estimation only)
+        issue.due_date > Date.today ? issue.due_date : Date.today
+      else
+        # relative schedule, issue open, no due date -> today
+        # (for estimation only)
+        Date.today
+      end
+    elsif fixed_schedule
+      if !issue.due_date.nil?
+        # fixed schedule, issue open/closed, due date set -> due date
+        issue.due_date
+      elsif !issue.closed_on.nil?
+        # fixed schedule, issue closed, no due date -> close date
+        issue.closed_on
+      else
+        # fixed schedule, issue open, no due date -> today
+        Date.today
+      end
     end
   end
 end
