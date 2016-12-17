@@ -9,7 +9,7 @@
     <%= content_tag :div, :id => "interval_modifier_block", :style => modifier_display do -%>
       <p><%= frm.select 'interval_modifier', rt.get_modifiers_descriptions.collect{|k,v| [v, k]} %></p>
     <% end -%>
-    <p><%= frm.check_box :fixed_schedule, :checked => true %></p>
+    <p><%= frm.check_box :fixed_schedule %></p>
   </div>
   <%= frm.submit %>
   <%= link_to l(:button_cancel), :back %>
